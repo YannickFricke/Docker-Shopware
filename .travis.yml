@@ -18,3 +18,7 @@ before_script:
 
 script:
   - python main.py
+
+cache:
+  directories:
+    - ./downloads/
