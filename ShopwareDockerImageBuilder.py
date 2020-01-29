@@ -71,9 +71,6 @@ class ShopwareDockerImageBuilder:
             self.pushDockerImage(version)
             print("Pushed Docker image")
 
-            # TODO: Remove
-            break
-
     def download(self, url, version):
         if not self.downloadFolder.exists():
             self.downloadFolder.mkdir(
