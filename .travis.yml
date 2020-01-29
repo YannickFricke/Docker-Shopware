@@ -17,7 +17,7 @@ before_script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
-  - python main.py
+  - ./build.sh
 
 cache:
   directories:
