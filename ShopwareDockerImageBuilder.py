@@ -36,40 +36,43 @@ class ShopwareDockerImageBuilder:
 
         return True
 
+    def log(self, message):
+        print(f"{message}{os.linesep}")
+
     def processData(self):
         for entry in self.data:
             version = entry['version']
             uri = entry['uri']
 
-            print(f"Processing version: {version}")
+            self.log(f"Processing version: {version}")
 
             try:
                 fileName = self.download(uri, version)
             except Exception as e:
-                print(f"Could not download version {version}: {e}")
+                self.log(f"Could not download version {version}: {e}")
                 continue
 
-            print("Unpacking archive")
+            self.log("Unpacking archive")
             self.unpack(fileName)
-            print("Unpacked archive")
+            self.log("Unpacked archive")
 
-            print("Copying dockerfile")
+            self.log("Copying dockerfile")
             self.copyDockerFile(version)
-            print("Copied dockerfile")
+            self.log("Copied dockerfile")
 
-            print("Copying php settings file")
+            self.log("Copying php settings file")
             self.copyPHPSettingsFile(version)
-            print("Copied php settings file")
+            self.log("Copied php settings file")
 
-            print("Building Docker image")
+            self.log("Building Docker image")
             self.buildDockerImage(
                 version,
             )
-            print("Built Docker image")
+            self.log("Built Docker image")
 
-            print("Pushing Docker image")
+            self.log("Pushing Docker image")
             self.pushDockerImage(version)
-            print("Pushed Docker image")
+            self.log("Pushed Docker image")
 
     def download(self, url, version):
         if not self.downloadFolder.exists():
@@ -100,9 +103,9 @@ class ShopwareDockerImageBuilder:
         )
 
         if shopwareFolder.exists():
-            print("Removing existing shopware directory")
+            self.log("Removing existing shopware directory")
             shutil.rmtree(shopwareFolder)
-            print("Removed existing shopware directory")
+            self.log("Removed existing shopware directory")
 
         shopwareFolder.mkdir(self.defaultDirectoryPermissions)
 
@@ -120,7 +123,7 @@ class ShopwareDockerImageBuilder:
                 f"./assets/docker/all.Dockerfile"
             )
 
-        print(f"Using the following Dockerfile: {str(dockerFile)}")
+        self.log(f"Using the following Dockerfile: {str(dockerFile)}")
 
         shutil.copyfile(
             dockerFile,
@@ -137,7 +140,8 @@ class ShopwareDockerImageBuilder:
                 f"./assets/php/all.ini"
             )
 
-        print(f"Using the following php settings file: {str(phpSettingsFile)}")
+        self.log(
+            f"Using the following php settings file: {str(phpSettingsFile)}")
 
         shutil.copyfile(
             phpSettingsFile,
