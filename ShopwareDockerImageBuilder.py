@@ -18,6 +18,12 @@ class ShopwareDockerImageBuilder:
         if not self.updateData():
             return
 
+        if not self.extractedFolder.exists():
+            self.extractedFolder.mkdir()
+
+        if not self.downloadFolder.exists():
+            self.downloadFolder.mkdir()
+
         self.processData()
 
     def updateData(self):
