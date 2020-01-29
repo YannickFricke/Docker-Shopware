@@ -37,7 +37,7 @@ class ShopwareDockerImageBuilder:
         return True
 
     def log(self, message):
-        print(f"{message}{os.linesep}")
+        print(f"{message}")
 
     def processData(self):
         for entry in self.data:
@@ -45,6 +45,10 @@ class ShopwareDockerImageBuilder:
             uri = entry['uri']
 
             self.log(f"Processing version: {version}")
+
+            if self.checkIfDockerTagExists(version):
+                self.log(f"The tag is already present: {version}")
+                continue
 
             try:
                 fileName = self.download(uri, version)
@@ -73,6 +77,12 @@ class ShopwareDockerImageBuilder:
             self.log("Pushing Docker image")
             self.pushDockerImage(version)
             self.log("Pushed Docker image")
+
+    def checkIfDockerTagExists(self, version):
+        response = get(
+            f"https://index.docker.io/v1/repositories/yfricke/shopware/tags/{version}")
+
+        return response.status_code is 200
 
     def download(self, url, version):
         if not self.downloadFolder.exists():
