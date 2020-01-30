@@ -36,16 +36,12 @@ class ShopwareDockerImageBuilder:
                 logger.info(f'Version {version} is already pushed to the Docker registry')
                 continue
 
-            try:
-                if not self.releaseDownloader.downloadRelease(
-                        self.downloadDirectory,
-                        version,
-                        downloadURL,
-                        sha1Hash,
-                ):
-                    continue
-            except Exception as e:
-                logger.error(f"")
+            if not self.releaseDownloader.downloadRelease(
+                    self.downloadDirectory,
+                    version,
+                    downloadURL,
+                    sha1Hash,
+            ):
                 continue
 
             downloadedArchive = self.downloadDirectory.joinpath(
