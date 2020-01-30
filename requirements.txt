@@ -2,6 +2,7 @@ autopep8==1.5
 certifi==2019.11.28
 chardet==3.0.4
 idna==2.8
+loguru==0.4.1
 pycodestyle==2.5.0
 requests==2.22.0
 urllib3==1.25.8

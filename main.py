@@ -1,6 +1,3 @@
-from requests import get
-
-
 from ShopwareDockerImageBuilder import ShopwareDockerImageBuilder
 
 if __name__ == '__main__':

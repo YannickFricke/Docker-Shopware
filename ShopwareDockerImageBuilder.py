@@ -1,175 +1,92 @@
-import json
-import os
-import shutil
 from pathlib import Path
 
+from loguru import logger
 from requests import get
+
+from ArchiveUnpacker import ArchiveUnpacker
+from DockerImageBuilder import DockerImageBuilder
+from ReleaseDownloader import ReleaseDownloader
+from ReleaseInformationDownloader import ReleaseInformationDownloader
 
 
 class ShopwareDockerImageBuilder:
     def __init__(self):
         self.data = []
-        self.updateURL = 'https://update-api.shopware.com/v1/releases/install'
-        self.extractedFolder = Path('./extracted/')
-        self.downloadFolder = Path('./downloads/')
-        self.defaultDirectoryPermissions = 0o744
+        self.buildDirectory = Path('./build/')
+        self.downloadDirectory = Path('./downloads/')
+        self.assetsDirectory = Path('./assets/')
 
+        self.releaseInformationDownloader = ReleaseInformationDownloader()
+        self.releaseDownloader = ReleaseDownloader()
+        self.archiveUnpacker = ArchiveUnpacker()
+        self.dockerImageBuilder = DockerImageBuilder()
+
+    @logger.catch
     def run(self):
-        if not self.updateData():
-            return
+        self.data = self.releaseInformationDownloader.fetchLatestInformations()
 
-        if not self.extractedFolder.exists():
-            self.extractedFolder.mkdir()
-
-        if not self.downloadFolder.exists():
-            self.downloadFolder.mkdir()
-
-        self.processData()
-
-    def updateData(self):
-        response = get(self.updateURL)
-
-        if response.status_code is not 200:
-            return False
-
-        self.data = json.loads(response.content)
-
-        return True
-
-    def log(self, message):
-        print(f"{message}")
-
-    def processData(self):
         for entry in self.data:
             version = entry['version']
-            uri = entry['uri']
+            downloadURL = entry['uri']
+            sha1Hash = entry['sha1']
 
-            self.log(f"Processing version: {version}")
+            logger.info(f'Processing version {version}')
 
             if self.checkIfDockerTagExists(version):
-                self.log(f"The tag is already present: {version}")
+                logger.info(f'Version {version} is already pushed to the Docker registry')
                 continue
 
             try:
-                fileName = self.download(uri, version)
+                if not self.releaseDownloader.downloadRelease(
+                        self.downloadDirectory,
+                        version,
+                        downloadURL,
+                        sha1Hash,
+                ):
+                    continue
             except Exception as e:
-                self.log(f"Could not download version {version}: {e}")
+                logger.error(f"")
                 continue
 
-            self.log("Unpacking archive")
-            self.unpack(fileName)
-            self.log("Unpacked archive")
+            downloadedArchive = self.downloadDirectory.joinpath(
+                f'{version}.zip',
+            )
 
-            self.log("Copying dockerfile")
-            self.copyDockerFile(version)
-            self.log("Copied dockerfile")
+            logger.debug(f'Unpacking archive {str(downloadedArchive.absolute())}')
 
-            self.log("Copying php settings file")
-            self.copyPHPSettingsFile(version)
-            self.log("Copied php settings file")
+            if not self.archiveUnpacker.unpackArchive(
+                    downloadedArchive,
+                    self.buildDirectory,
+            ):
+                logger.error(f"Could not unpack archive {str(downloadedArchive.absolute())}")
+                continue
 
-            self.log("Building Docker image")
-            self.buildDockerImage(
+            logger.info(f'Unpacked archive {str(downloadedArchive.absolute())}')
+
+            try:
+                self.dockerImageBuilder.buildImage(
+                    version,
+                    self.assetsDirectory,
+                    self.buildDirectory,
+                )
+            except Exception as e:
+                logger.error(e)
+                continue
+
+            self.dockerImageBuilder.pushDockerImage(
                 version,
             )
-            self.log("Built Docker image")
 
-            self.log("Pushing Docker image")
-            self.pushDockerImage(version)
-            self.log("Pushed Docker image")
+            if version == self.releaseInformationDownloader.latestVersion:
+                logger.info('Pushing latest tag')
+                self.dockerImageBuilder.buildDockerImage(
+                    'latest',
+                    self.buildDirectory,
+                )
+                self.dockerImageBuilder.pushDockerImage('latest')
 
     def checkIfDockerTagExists(self, version):
         response = get(
             f"https://index.docker.io/v1/repositories/yfricke/shopware/tags/{version}")
 
         return response.status_code is 200
-
-    def download(self, url, version):
-        if not self.downloadFolder.exists():
-            self.downloadFolder.mkdir(
-                self.defaultDirectoryPermissions
-            )
-
-        downloadedFile = self.downloadFolder.joinpath(f'{version}.zip')
-
-        if downloadedFile.exists():
-            return str(downloadedFile)
-
-        response = get(url)
-
-        if response.status_code is not 200:
-            raise Exception("Download not ok")
-
-        # if not self.extractedFolder.exists():
-        #     self.extractedFolder.mkdir(self.defaultDirectoryPermissions)
-
-        downloadedFile.write_bytes(response.content)
-
-        return str(downloadedFile)
-
-    def unpack(self, fileName):
-        shopwareFolder = self.extractedFolder.joinpath(
-            'shopware'
-        )
-
-        if shopwareFolder.exists():
-            self.log("Removing existing shopware directory")
-            shutil.rmtree(shopwareFolder)
-            self.log("Removed existing shopware directory")
-
-        shopwareFolder.mkdir(self.defaultDirectoryPermissions)
-
-        os.system(
-            f"unzip {fileName} -d {str(shopwareFolder)} > /dev/null 2>&1"
-        )
-
-    def copyDockerFile(self, version):
-        dockerFile = Path(
-            f"./assets/docker/{version}.Dockerfile"
-        )
-
-        if not dockerFile.exists():
-            dockerFile = Path(
-                f"./assets/docker/all.Dockerfile"
-            )
-
-        self.log(f"Using the following Dockerfile: {str(dockerFile)}")
-
-        shutil.copyfile(
-            dockerFile,
-            './extracted/Dockerfile'
-        )
-
-    def copyPHPSettingsFile(self, version):
-        phpSettingsFile = Path(
-            f"./assets/php/{version}.ini"
-        )
-
-        if not phpSettingsFile.exists():
-            phpSettingsFile = Path(
-                f"./assets/php/all.ini"
-            )
-
-        self.log(
-            f"Using the following php settings file: {str(phpSettingsFile)}")
-
-        shutil.copyfile(
-            phpSettingsFile,
-            './extracted/php.ini'
-        )
-
-    def buildDockerImage(
-        self,
-        version: str
-    ):
-        os.system(
-            f"docker build -t yfricke/shopware:{version} --file ./extracted/Dockerfile ./extracted/ > /dev/null 2>&1"
-        )
-
-    def pushDockerImage(
-        self,
-        version: str
-    ):
-        os.system(
-            f"docker push yfricke/shopware:{version}"
-        )
