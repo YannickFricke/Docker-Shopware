@@ -7,6 +7,7 @@ from ArchiveUnpacker import ArchiveUnpacker
 from DockerImageBuilder import DockerImageBuilder
 from ReleaseDownloader import ReleaseDownloader
 from ReleaseInformationDownloader import ReleaseInformationDownloader
+from VersionRebuilder import VersionRebuilder
 
 
 class ShopwareDockerImageBuilder:
@@ -16,6 +17,7 @@ class ShopwareDockerImageBuilder:
         self.downloadDirectory = Path('./downloads/')
         self.assetsDirectory = Path('./assets/')
 
+        self.versionRebuilder = VersionRebuilder()
         self.releaseInformationDownloader = ReleaseInformationDownloader()
         self.releaseDownloader = ReleaseDownloader()
         self.archiveUnpacker = ArchiveUnpacker()
@@ -23,7 +25,13 @@ class ShopwareDockerImageBuilder:
 
     @logger.catch
     def run(self):
-        self.data = self.releaseInformationDownloader.fetchLatestInformations()
+        try:
+            self.data = self.releaseInformationDownloader.fetchLatestInformations()
+        except Exception as e:
+            logger.error(e)
+            return
+
+        self.versionRebuilder.readFile()
 
         for entry in self.data:
             version = entry['version']
@@ -32,7 +40,7 @@ class ShopwareDockerImageBuilder:
 
             logger.info(f'Processing version {version}')
 
-            if self.checkIfDockerTagExists(version):
+            if not self.versionRebuilder.checkIfVersionNeedsRebuild(version) and self.checkIfDockerTagExists(version):
                 logger.info(f'Version {version} is already pushed to the Docker registry')
                 continue
 
@@ -80,6 +88,8 @@ class ShopwareDockerImageBuilder:
                     self.buildDirectory,
                 )
                 self.dockerImageBuilder.pushDockerImage('latest')
+
+        self.versionRebuilder.finalize()
 
     def checkIfDockerTagExists(self, version):
         response = get(
