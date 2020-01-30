@@ -126,7 +126,7 @@ class DockerImageBuilder:
         logger.debug(f'Pushing version {version} to the Docker registry')
 
         os.system(
-            f"docker push {self.dockerUsername}/{self.dockerRepository}:{version}",
+            f"docker push {self.dockerUsername}/{self.dockerRepository}:{version} > /dev/null 2>&1",
         )
 
         logger.debug(f'Pushed version {version} to the Docker registry')
