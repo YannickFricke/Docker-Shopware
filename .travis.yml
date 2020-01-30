@@ -1,22 +1,21 @@
 language: python
 services:
-- docker
+  - docker
 python:
-- '3.7'
+  - '3.7'
 addons:
   apt:
     packages:
-    - unzip
+      - unzip
 install:
-- pip install -r requirements.txt
-before_script:
-- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - pip install -r requirements.txt
 script:
-- "./build.sh"
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - "./build.sh"
 cache:
   directories:
-  - "./downloads/"
+    - "./downloads/"
 env:
   global:
-  - secure: RNOOd1ucpvbeSbDOdVqIkgcbp8KeOkpohYjtKXn2OPIhCpMftrvFlnefWvH+YUD1f1EBoWApDaPOKMWEeVInhTqY0aAxnkORKLjL6+/2ULbsFyHm6yuZZ0q5cWl4yqpqOTFcEwfZhWqgRPWbglTjo39tm9+CPpLrqHyY33otaJhAwoaYXiZJFr7tN4i3xmod4Uko2juyN8G/iYnbSj9Twk/46aF+Un9M9WKCqMEX58/d60Zvo/7Xq+0ly7zV0KdnpvbjAsn3PYRGQpnfB/6gUbHfY/nShScLMD/JZlD2DihC33dnDlS1tbdkDwFINwqamVpRkd3ip9GK4jfZi4Hmt2G9CFsmGcUSKZvVphwj2nzzvy+PUmA/paR0pLu/ERhQNMvgLD6HjcbnM+oblkYJvFYnZIIB2g2NDv2xPPbOE1TIDnDd4gRHW+WUmkqytIS6sWAvw9oPb/DW8sCdvGwZLamoXUCox7xGrtPt9UTDPaeVQr4qA6ZaXAmrksnfnG1DIaO2NZ9UFOrxPbTDaaWkztBP6YsZZ/jvxtbY1O0VjEupQxcUzyRIsnFJ3zNTlLcJKAE6hfycywjjcLCREFqg36Lja2kvxQWgDZ8/simnAg3jXwAFYjjvLxda+OXZ4WsLgNHxE+J4tFu1mfjNd+m4y55+JLfzzyptp5zO8H6+wKo=
-  - secure: i7b1YO4jHtXnKBm2Hl/ZwI0vMtdAr1Thp6dYVYaLcjI4Wz2SwhF33o9NDm1edC+SV5c9mSUooST18296U7nK8sAKubVcEMCPOAiD5jnttVOYHRot2ZJN6rtFeTMj439+znDEPEYuHjGcx+dIVxBgKTNRdcucLD5RD1XOenZzcwvkhTY8rlzIFsh260xkg7uZB52UlalEAWmitkwoBRZKt2bIZS2l2bX4T6aFmCWxZipjLr+LHm4mJUmnvOQhDovsfIg/S9pTcjZ4Q4hoJAXHl7RvwXCOiz/448+dmn0trBb7pqhy+Xg77txtTCBJAGTbkE2o5N6sxfLYyIqmZ4ELcvJ9AJBaMcxP45KkcfL7QTCaxt9toR+5Eo88NJO3ieYy2t2O5GgPiecxY2YNavavWWMeAYp4X1Oc1KfkIwghJwXJHuR5/yVq1RkzC63fMJ/nK9aUFba/45xJdrYf+jVqHjTWuaJA5dTKx9SxpAcduDX31tP9JZTyV4z45awpiZMlYkjGhhSNJAkzWykJJ8lSIsSFPCKZ+Lot6wZ1NAAo0M00mTOOuM0VbQsZlq+0GEqTD1KFPxsYeX2y5FU69+KfMzQ05KplP6XFwotutgvyx4ONrgVWIxD4yRfuFK5n8qP3vFW3dCzKNJtX5ZNAv2MPe6lxHJirZsDoSdPnJ7lnPSk=
+    - secure: RNOOd1ucpvbeSbDOdVqIkgcbp8KeOkpohYjtKXn2OPIhCpMftrvFlnefWvH+YUD1f1EBoWApDaPOKMWEeVInhTqY0aAxnkORKLjL6+/2ULbsFyHm6yuZZ0q5cWl4yqpqOTFcEwfZhWqgRPWbglTjo39tm9+CPpLrqHyY33otaJhAwoaYXiZJFr7tN4i3xmod4Uko2juyN8G/iYnbSj9Twk/46aF+Un9M9WKCqMEX58/d60Zvo/7Xq+0ly7zV0KdnpvbjAsn3PYRGQpnfB/6gUbHfY/nShScLMD/JZlD2DihC33dnDlS1tbdkDwFINwqamVpRkd3ip9GK4jfZi4Hmt2G9CFsmGcUSKZvVphwj2nzzvy+PUmA/paR0pLu/ERhQNMvgLD6HjcbnM+oblkYJvFYnZIIB2g2NDv2xPPbOE1TIDnDd4gRHW+WUmkqytIS6sWAvw9oPb/DW8sCdvGwZLamoXUCox7xGrtPt9UTDPaeVQr4qA6ZaXAmrksnfnG1DIaO2NZ9UFOrxPbTDaaWkztBP6YsZZ/jvxtbY1O0VjEupQxcUzyRIsnFJ3zNTlLcJKAE6hfycywjjcLCREFqg36Lja2kvxQWgDZ8/simnAg3jXwAFYjjvLxda+OXZ4WsLgNHxE+J4tFu1mfjNd+m4y55+JLfzzyptp5zO8H6+wKo=
+    - secure: i7b1YO4jHtXnKBm2Hl/ZwI0vMtdAr1Thp6dYVYaLcjI4Wz2SwhF33o9NDm1edC+SV5c9mSUooST18296U7nK8sAKubVcEMCPOAiD5jnttVOYHRot2ZJN6rtFeTMj439+znDEPEYuHjGcx+dIVxBgKTNRdcucLD5RD1XOenZzcwvkhTY8rlzIFsh260xkg7uZB52UlalEAWmitkwoBRZKt2bIZS2l2bX4T6aFmCWxZipjLr+LHm4mJUmnvOQhDovsfIg/S9pTcjZ4Q4hoJAXHl7RvwXCOiz/448+dmn0trBb7pqhy+Xg77txtTCBJAGTbkE2o5N6sxfLYyIqmZ4ELcvJ9AJBaMcxP45KkcfL7QTCaxt9toR+5Eo88NJO3ieYy2t2O5GgPiecxY2YNavavWWMeAYp4X1Oc1KfkIwghJwXJHuR5/yVq1RkzC63fMJ/nK9aUFba/45xJdrYf+jVqHjTWuaJA5dTKx9SxpAcduDX31tP9JZTyV4z45awpiZMlYkjGhhSNJAkzWykJJ8lSIsSFPCKZ+Lot6wZ1NAAo0M00mTOOuM0VbQsZlq+0GEqTD1KFPxsYeX2y5FU69+KfMzQ05KplP6XFwotutgvyx4ONrgVWIxD4yRfuFK5n8qP3vFW3dCzKNJtX5ZNAv2MPe6lxHJirZsDoSdPnJ7lnPSk=
